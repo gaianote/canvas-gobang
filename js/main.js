@@ -1,19 +1,83 @@
 $(document).ready(function() {
 
   var me = true;
+  var over = false;
 
   function turn() {
     me = !me;
   }
 
+  var wins = []; //赢法数组
+  for (var i = 0; i < 15; i++) {
+    wins.push([])
+    for (var j = 0; j < 15; j++) {
+      wins[i].push([])
+    }
+  }
+//赢法统计数组;之前把定义放在count前了,所以没出结果
+var myWin = []
+var computerWin = []
+
+
+  //所有横线的赢法
+  var count = 0;
+  for (var i = 0; i < 15; i++) {
+    for (var j = 0; j < 11; j++) { //当j等于11时,x方向不足以容纳
+      for (var k = 0; k < 5; k++) {
+        //wins[0][0][0] 前两个代表棋盘,[0][0]-[0][5]连成了一条线,这是一种赢法
+        //wins[0][1][0] k出现5次,实际上是一种赢法
+        //wins[0][2][0]
+        //wins[0][3][0]
+        //wins[0][4][0]
+        //假设y = 11:
+        //wins[0][11][11]
+        //wins[0][12][11]
+        //wins[0][13][11]
+        //wins[0][14][11] x轴的边界是14,所以超出了范围
+        //wins[0][15][11]
+        wins[i][j + k][count] = true;
+      }
+      count++;
+    }
+  }
+  for (var i = 0; i < 11; i++) {
+    for (var j = 0; j < 11; j++) {
+      for (var k = 0; k < 5; k++) {
+        wins[i + k][j + k][count] = true;
+      }
+      count++;
+    }
+  }
+
+  for (var i = 0; i < 11; i++) {
+    for (var j = 14; j > 3; j--) {
+      for (var k = 0; k < 5; k++) {
+        wins[i + k][j - k][count] = true;
+      }
+      count++;
+    }
+  }
+  for (var i = 0; i < 15; i++) {
+    for (var j = 0; j < 11; j++) {
+      for (var k = 0; k < 5; k++) {
+        wins[j + k][i][count] = true;
+      }
+      count++;
+    }
+  }
+//赢法统计数组
+for(var i=0;i<count;i++){
+  myWin[i] = 0;
+  computerWin[i] = 0;
+
+}
   var chessBoard = [];
   for (var i = 0; i < 15; i++) {
-      chessBoard.push([])
+    chessBoard.push([])
     for (var j = 0; j < 15; j++) {
       chessBoard[i].push(0)
     }
   }
-  console.log(chessBoard)
 
   var chess = document.getElementById('chess');
   if (chess.getContext) {
@@ -66,6 +130,7 @@ $(document).ready(function() {
     turn() //被调用1次,状态就改变一次
   }
   chess.onclick = function(e) {
+    if(over) return ;//如果游戏结束直接返回
     //e.offset是相对于画布偏移的坐标
     var i = Math.floor(e.offsetX / 30)
     var j = Math.floor(e.offsetY / 30)
@@ -77,9 +142,24 @@ $(document).ready(function() {
         drawChess(i, j, me)
         chessBoard[i][j] = 2;
       }
+      //如果存在一个mywin[k],使myWin[k]=5,说明第k种赢法被实现
+      for(var k=0;k<count;k++){
+        if(wins[i][j][k]){
+          myWin[k]++;
+          computerWin[k] = 6;
+          if(myWin[k] == 5){
+            console.log('clear')
+            over = true;
+          }
+        };
+        if(!over){
+          computerAI()
+        }
+      }
     }
 
   }
+
 
 
 })
